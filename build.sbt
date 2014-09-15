@@ -43,9 +43,13 @@ lazy val commonSettings = Seq(
   fork := true,
   resolvers += Resolver.sonatypeRepo("releases"),
   libraryDependencies <+= scalaVersion("org.scala-lang" % "scala-reflect" % _),
+  libraryDependencies <+= scalaVersion {
+    v =>
+      val shapeless = "com.chuusai" %% "shapeless" % "2.0.0"
+      if (v.startsWith("2.10")) shapeless cross CrossVersion.full else shapeless
+  },
   libraryDependencies ++= Seq(
     "org.scalaz" %% "scalaz-core" % "7.1.0",
-    "com.chuusai" %% "shapeless" % "2.0.0",
     "org.slf4j" % "slf4j-api" % "1.7.7",
     "ch.qos.logback" % "logback-classic" % "1.1.2" % "test",
     "com.fasterxml.jackson.core" % "jackson-core" % "2.4.2",
