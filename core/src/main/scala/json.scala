@@ -79,7 +79,7 @@ object Marshall {
 }
 
 // unmarshall from JSON AST to A
-abstract class UnMarshall[+A] {
+abstract class UnMarshall[A] {
   def unmarshall(x: Json): ValidationNel[String, A]
   def typename: String
   protected[this] def failure(x: Json) = s"Cannot unmarshall $x to $typename".failureNel
