@@ -18,7 +18,7 @@ import utest._
 import scala.concurrent._, duration._
 import internal.Implicits._
 import collection._
-import json._, Converter._, Converter.auto._
+import json._, Marshall._, UnMarshall._
 
 object CollectionTest extends TestSuite {
   case class A(x: Int, y: String, z: Option[Int])

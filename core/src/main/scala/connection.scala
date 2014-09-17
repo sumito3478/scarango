@@ -20,7 +20,7 @@ import scala.concurrent._
 import internal.Implicits._
 
 import com.ning.http.client._, http._
-import json._, Json._, Converter._, Converter.auto._
+import json._, Json._, Marshall._, UnMarshall._
 import scalaz._, Scalaz._
 
 private[scarango] case class Result[A](result: A)
@@ -55,7 +55,7 @@ case class Connection(executor: Executor, host: String = "127.0.0.1", port: Int 
     private[this] def checkError(json: Json): Unit = {
       json match {
         case JObject(x) if x.get("error") == Some(JBoolean(true)) =>
-          val error = Converter.unmarshall[ArangoErrorResponse](json) match {
+          val error = unmarshall[ArangoErrorResponse](json) match {
             case -\/(e) => throw new ArangoDriverException(message = s"Unrecognized error response: ${Json.prettyPrint(json)}", cause = Some(e))
             case \/-(r) => r
           }
@@ -63,7 +63,7 @@ case class Connection(executor: Executor, host: String = "127.0.0.1", port: Int 
         case _ =>
       }
     }
-    def dispatch[A: Converter](): Future[A] =
+    def dispatch[A: UnMarshall](): Future[A] =
       dispatchRaw[A] {
         res =>
           val body = res.getResponseBody("UTF-8")
@@ -71,13 +71,13 @@ case class Connection(executor: Executor, host: String = "127.0.0.1", port: Int 
             case -\/(e) => throw new ArangoDriverException(s"Could not parse response: $body", cause = Some(e))
             case \/-(json) =>
               checkError(json)
-              Converter.unmarshall[Result[A]](json) match {
+              unmarshall[Result[A]](json) match {
                 case -\/(e) => throw new ArangoDriverException(s"Could not convert response: $body", cause = Some(e))
                 case \/-(Result(result)) => result
               }
           }
       }
-    def dispatchRoot[A: Converter](): Future[A] =
+    def dispatchRoot[A: UnMarshall](): Future[A] =
       dispatchRaw[A] {
         res =>
           val body = res.getResponseBody("UTF-8")
@@ -85,7 +85,7 @@ case class Connection(executor: Executor, host: String = "127.0.0.1", port: Int 
             case -\/(e) => throw new ArangoDriverException(s"Could not parse response: $body", cause = Some(e))
             case \/-(json) =>
               checkError(json)
-              Converter.unmarshall[A](json) match {
+              unmarshall[A](json) match {
                 case -\/(e) => throw new ArangoDriverException(s"Could not convert response: $body", cause = Some(e))
                 case \/-(result) => result
               }

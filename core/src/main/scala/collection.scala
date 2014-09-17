@@ -16,7 +16,7 @@ package scarango
 package collection
 
 import db._
-import json._, Converter._, Converter.auto._
+import json._, Json._, Marshall._, UnMarshall._
 import scala.concurrent._
 import internal.Implicits._
 
@@ -27,13 +27,13 @@ case class QueryByExample(collection: String, example: Json, skip: Option[Int], 
 case class QueryResult(hasMore: Boolean, count: Int, result: List[Json])
 case class Collection(name: String, database: DatabaseLike) {
   import database._dispatcher
-  def document[A: Converter](id: String): Future[A] =
+  def document[A: UnMarshall](id: String): Future[A] =
     (_dispatcher.GET / s"document/$id").dispatchRoot[A]()
-  def save[A: Converter](doc: A, createCollection: Boolean = false, waitForSync: Boolean = false): Future[Document] =
-    (_dispatcher.copy(body = Some(Json.write(Converter.marshall(doc)))).POST / s"document" <<? Seq("collection" -> name, "createCollection" -> createCollection, "waitForSync" -> waitForSync)).dispatchRoot[Document]()
+  def save[A: Marshall](doc: A, createCollection: Boolean = false, waitForSync: Boolean = false): Future[Document] =
+    (_dispatcher.copy(body = Some(Json.write(marshall(doc)))).POST / s"document" <<? Seq("collection" -> name, "createCollection" -> createCollection, "waitForSync" -> waitForSync)).dispatchRoot[Document]()
   def ensureHashIndex(fields: String*) =
-    (_dispatcher.copy(body = Some(Json.write(Converter.marshall(EnsuringIndex(`type` = "hash", unique = false, fields = fields.toList))))).POST / s"index" <<? Seq("collection" -> name)).dispatch[EnsuringIndexResult]()
+    (_dispatcher.copy(body = Some(Json.write(marshall(EnsuringIndex(`type` = "hash", unique = false, fields = fields.toList))))).POST / s"index" <<? Seq("collection" -> name)).dispatch[EnsuringIndexResult]()
   def byExample[A](example: Map[String, Json], skip: Option[Int], limit: Option[Int]) =
-    (_dispatcher.copy(body = Some(Json.write(Converter.marshall(QueryByExample(collection = name, example = Json.JObject(example), skip = skip, limit = limit))))).PUT / s"simple/by-example").dispatch[QueryResult]()
+    (_dispatcher.copy(body = Some(Json.write(marshall(QueryByExample(collection = name, example = Json.JObject(example), skip = skip, limit = limit))))).PUT / s"simple/by-example").dispatch[QueryResult]()
 }
 

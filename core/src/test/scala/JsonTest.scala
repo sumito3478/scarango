@@ -27,9 +27,7 @@ object JsonTest extends TestSuite {
           val a2 = A(1, "1", None)
           val b1 = B(1, a1, Some(a1))
           val b2 = B(1, a2, None)
-          import json.Converter._
-          import json.Converter.auto._
-          import json.Json._
+          import json._, Json._, Marshall._
           // uTest assert macro and Shapeless derive macro both generates terms named "inst$macro$<n>" and they conflicts... I should call them separatedly
           val a1json = marshall(a1)
           val a2json = marshall(a2)
@@ -42,16 +40,13 @@ object JsonTest extends TestSuite {
             b2json == JObject(Map("x" -> JInt(1), "y" -> a2json)))
         }
         "marshall List" - {
-          import json.Converter._
-          import json.Json._
+          import json._, Json._, Marshall._
           assert(marshall(List(1, 2, 3)) == JArray(Seq(JInt(1), JInt(2), JInt(3))))
         }
       }
       "unmarshall" - {
         "unmarshall case class" - {
-          import json.Converter._
-          import json.Converter.auto._
-          import json.Json._
+          import json._, Json._, UnMarshall._
           val a1json = JObject(Map("x" -> JInt(1), "y" -> JString("1"), "z" -> JInt(1)))
           val a2json = JObject(Map("x" -> JInt(1), "y" -> JString("1")))
           val b1json = JObject(Map("x" -> JInt(1), "y" -> a1json, "z" -> a1json))

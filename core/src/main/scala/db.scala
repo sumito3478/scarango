@@ -15,7 +15,7 @@ limitations under the License.
 package scarango
 package db
 
-import json._, Converter._, Converter.auto._
+import json._, Json._, Marshall._, UnMarshall._
 import connection._
 import collection._
 import scala.language.dynamics
@@ -51,7 +51,7 @@ case class SystemDatabase(connection: Connection) extends DatabaseLike {
   /**
    * Creates a new database
    */
-  def _create(name: String, users: List[db.User] = List()): Future[Boolean] = (_dispatcher.copy(body = Some(Json.write(Converter.marshall(DBCreationOption(name = name, users = users))))).POST / "database").dispatch[Boolean]()
+  def _create(name: String, users: List[db.User] = List()): Future[Boolean] = (_dispatcher.copy(body = Some(Json.write(marshall(DBCreationOption(name = name, users = users))))).POST / "database").dispatch[Boolean]()
 
   /**
    * Deletes the database along with all data stored in it. Note: dropping a database is only possible from within the _system database. The _system database itself cannot be dropped.
