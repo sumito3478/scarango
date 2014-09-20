@@ -22,11 +22,12 @@ import internal.Implicits._
 import com.ning.http.client._, http._
 import json._, Json._, Marshall._, UnMarshall._
 import scalaz._, Scalaz._
+import scala.language.dynamics
 
 private[scarango] case class Result[A](result: A)
 private[scarango] case class DBCreationOption(name: String, users: List[db.User])
 
-case class Connection(executor: Executor, host: String = "127.0.0.1", port: Int = 8529, ssl: Boolean = false, user: Option[String] = None, password: Option[String] = None) {
+case class Connection(executor: Executor, host: String = "127.0.0.1", port: Int = 8529, ssl: Boolean = false, user: Option[String] = None, password: Option[String] = None) extends Dynamic {
   private[scarango] def _baseUrl = {
     val scheme = if (ssl) "https" else "http"
     s"$scheme://$host:$port"
@@ -38,6 +39,8 @@ case class Connection(executor: Executor, host: String = "127.0.0.1", port: Int 
   def _userDBs: Future[List[String]] = (Dispatcher().GET / "database/user").dispatch[List[String]]()
 
   val _system = db.SystemDatabase(connection = this)
+
+  def selectDynamic(name: String) = db.Database(name = name, connection = this)
 
   private[scarango] case class Dispatcher(url: String = _api, method: String = "GET", body: Option[String] = None, headers: Map[String, String] = Map(), queries: Map[String, String] = Map()) {
     private[this] def dispatchRaw[A](f: Response => A): Future[A] = {
