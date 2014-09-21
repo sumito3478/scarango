@@ -55,9 +55,8 @@ lazy val commonSettings = Seq(
     "com.fasterxml.jackson.core" % "jackson-core" % "2.4.2",
     "com.fasterxml.jackson.core" % "jackson-databind" % "2.4.2",
     "com.ning" % "async-http-client" % "1.8.13",
-    "com.lihaoyi" %% "utest" % "0.2.3" % "test"
+    "org.scalatest" %% "scalatest" % "2.2.2" % "test"
   ),
-  testFrameworks += new TestFramework("utest.runner.JvmFramework"),
   licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0.txt")),
   scalacOptions ++= Seq(
     "-encoding", "utf-8",

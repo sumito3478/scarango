@@ -14,22 +14,23 @@ limitations under the License.
 */
 package scarango
 
-import utest._
 import scala.concurrent._, duration._
 import internal.Implicits._
 import collection._
 import json._, Marshall._, UnMarshall._
+import org.scalatest._
+import org.scalatest.concurrent._
 
-object CollectionTest extends TestSuite {
+class CollectionSpec extends FunSpec with ScalaFutures with DiagrammedAssertions {
   case class A(x: Int, y: String, z: Option[Int])
   case class B(x: Int, y: A, z: Option[A])
   val a1 = A(1, "1", Some(1))
   val a2 = A(1, "1", None)
   val b1 = B(1, a1, Some(a1))
   val b2 = B(1, a2, None)
-  val tests = TestSuite {
-    "Collection" - {
-      "save" - {
+  describe("A Collection") {
+    describe("when saves case class instances") {
+      it("case class instances are saved in the collection") {
         val testcol = connection.Connection(executor = http.Executor())._system.testcol
         val f = for {
           Document(a1id, _, _) <- testcol.save(doc = a1, createCollection = true, waitForSync = true)
@@ -41,15 +42,11 @@ object CollectionTest extends TestSuite {
           b1found <- testcol.document[B](id = b1id)
           b2found <- testcol.document[B](id = b2id)
         } yield {
-          assert(
-            a1found == a1,
-            a2found == a2,
-            b1found == b1,
-            b2found == b2)
+          assert(a1found == a1 && a2found == a2 && b1found == b1 && b2found == b2)
         }
-        Await.result(f, Duration(1, MINUTES))
+        val ready = f.isReadyWithin(1.minute)
+        assert(ready)
       }
     }
   }
 }
-
