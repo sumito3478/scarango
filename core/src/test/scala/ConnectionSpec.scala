@@ -14,7 +14,6 @@ limitations under the License.
 */
 package scarango
 
-import utest._
 import scala.concurrent._, duration._
 import internal.Implicits._
 import scala.concurrent._, duration._
