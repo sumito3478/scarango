@@ -36,7 +36,7 @@ trait Executor {
   }
 }
 object Executor {
-  val defaultUserAgent = "Mozilla/5.0 (compatible; scala-arango/1.4; +https://github.com/sumito3478/)"
+  val defaultUserAgent = s"Mozilla/5.0 (compatible; scarango/${BuildInfo.version}}; +https://github.com/sumito3478/scarango)"
   def apply(client: AsyncHttpClient): Executor = {
     val c = client
     new Executor {

@@ -35,6 +35,15 @@ lazy val macroParadiseSettings = Seq(
   addCompilerPlugin("org.scalamacros" % "paradise" % "2.0.1" cross CrossVersion.full)
 )
 
+lazy val buildInfoSettings = {
+  import sbtbuildinfo.Plugin._
+  sbtbuildinfo.Plugin.buildInfoSettings ++ Seq(
+    sourceGenerators in Compile += buildInfo.taskValue,
+    buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
+    buildInfoPackage := "scarango"
+  )
+}
+
 lazy val commonSettings = Seq(
   javaOptions := Seq("-Xms1024m"),
   organization := "org.arangodb.scarango",
@@ -75,4 +84,4 @@ lazy val commonConfiguration: Project => Project =
 lazy val all = (project in file(".")).configure(commonConfiguration).aggregate(core).dependsOn(core).settings(commonSettings: _*)
 
 // core module
-lazy val core = project.configure(commonConfiguration).settings(commonSettings: _*)
+lazy val core = project.configure(commonConfiguration).settings(commonSettings: _*).settings(buildInfoSettings: _*)
