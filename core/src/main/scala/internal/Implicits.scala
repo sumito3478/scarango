@@ -22,5 +22,30 @@ private[scarango] object Implicits {
   // Use global ExecutionContext instead of passing E.C.s via implicit params
   // See http://blog.jessitron.com/2014/02/scala-global-executioncontext-makes.html
   implicit val executionContext = ExecutionContext.Implicits.global
+  implicit class FutureW[A](val self: Future[A]) {
+    // Applies the "during" action, calling "after" regardless of whether there was an exception. All exceptions are rethrown. Generalizes try/finally.
+    def bracket[B, C](after: A => Future[B])(during: A => Future[C]): Future[C] =
+      for {
+        a <- self
+        ret <- {
+          val p = Promise[C]()
+          during(a) onComplete {
+            case scala.util.Success(c) =>
+              after(a) onComplete {
+                case scala.util.Success(_) => p.success(c)
+                case scala.util.Failure(e) => p.failure(e)
+              }
+            case scala.util.Failure(e) =>
+              after(a) onComplete {
+                case scala.util.Success(_) => p.failure(e)
+                case scala.util.Failure(e2) =>
+                  e.addSuppressed(e2)
+                  p.failure(e)
+              }
+          }
+          p.future
+        }
+      } yield ret
+  }
 }
 

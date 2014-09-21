@@ -24,14 +24,23 @@ object ConnectionTest extends TestSuite {
       "_create" - {
         val con = connection.Connection(executor = http.Executor())
         val f = for {
-          creationResult <- con._system._create(name = "test-database")
-          _ = assert(creationResult)
-          dbs <- con._system._dbs
-          _ = assert(dbs == List("_system", "test-database"))
-          userDBs <- con._userDBs
-          _ = assert(userDBs == List("_system", "test-database"))
-          deletionResult <- con._system._delete(name = "test-database")
-          _ = assert(deletionResult)
+          _ <- con._system._create(name = "test-database").bracket[Unit, Unit] {
+            creationResult =>
+              if (creationResult) for {
+                deletionResult <- con._system._delete(name = "test-database")
+                _ = assert(deletionResult)
+              } yield ()
+              else Future(())
+          } {
+            creationResult =>
+              assert(creationResult)
+              for {
+                dbs <- con._system._dbs
+                _ = assert(dbs == List("_system", "test-database"))
+                userDBs <- con._userDBs
+                _ = assert(userDBs == List("_system", "test-database"))
+              } yield ()
+          }
         } yield ()
         Await.result(f, Duration(1, MINUTES))
       }
