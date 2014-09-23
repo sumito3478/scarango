@@ -49,6 +49,9 @@ object Marshall {
   implicit object MarshallJson extends Marshall[Json] {
     override def marshall(x: Json) = x
   }
+  implicit object MarshallUnit extends Marshall[Unit] {
+    override def marshall(x: Unit) = JNothing
+  }
   implicit object MarshallInt extends Marshall[Int] {
     override def marshall(x: Int) = JInt(x)
   }
@@ -95,6 +98,10 @@ object UnMarshall {
   implicit object UnMarshallJson extends UnMarshall[Json] {
     def typename = "Json"
     def unmarshall(x: Json): ValidationNel[String, Json] = x.successNel
+  }
+  implicit object UnMarshallUnit extends UnMarshall[Unit] {
+    def typename = "Unit"
+    def unmarshall(x: Json): ValidationNel[String, Unit] = ().successNel
   }
   implicit object UnMarshallInt extends UnMarshall[Int] {
     def typename = "Int"

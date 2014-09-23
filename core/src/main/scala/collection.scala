@@ -35,5 +35,11 @@ case class Collection(name: String, database: DatabaseLike) {
     (_dispatcher.copy(body = Some(Json.write(marshall(EnsuringIndex(`type` = "hash", unique = false, fields = fields.toList))))).POST / s"index" <<? Seq("collection" -> name)).dispatch[EnsuringIndexResult]()
   def byExample[A](example: Map[String, Json], skip: Option[Int], limit: Option[Int]) =
     (_dispatcher.copy(body = Some(Json.write(marshall(QueryByExample(collection = name, example = Json.JObject(example), skip = skip, limit = limit))))).PUT / s"simple/by-example").dispatch[QueryResult]()
+
+  /**
+   * Deletes this collection.
+   */
+  def delete: Future[Unit] =
+    (_dispatcher.DELETE / s"collection/$name").dispatchRoot[Unit]
 }
 

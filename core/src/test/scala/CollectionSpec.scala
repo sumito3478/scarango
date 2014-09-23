@@ -32,20 +32,24 @@ class CollectionSpec extends FunSpec with ScalaFutures with DiagrammedAssertions
     describe("when saves case class instances") {
       it("case class instances are saved in the collection") {
         val testcol = connection.Connection(executor = http.Executor())._system.testcol
-        val f = for {
-          Document(a1id, _, _) <- testcol.save(doc = a1, createCollection = true, waitForSync = true)
-          Document(a2id, _, _) <- testcol.save(doc = a2, createCollection = true, waitForSync = true)
-          Document(b1id, _, _) <- testcol.save(doc = b1, createCollection = true, waitForSync = true)
-          Document(b2id, _, _) <- testcol.save(doc = b2, createCollection = true, waitForSync = true)
-          a1found <- testcol.document[A](id = a1id)
-          a2found <- testcol.document[A](id = a2id)
-          b1found <- testcol.document[B](id = b1id)
-          b2found <- testcol.document[B](id = b2id)
-        } yield {
-          assert(a1found == a1 && a2found == a2 && b1found == b1 && b2found == b2)
+        try {
+          val f = for {
+            Document(a1id, _, _) <- testcol.save(doc = a1, createCollection = true, waitForSync = true)
+            Document(a2id, _, _) <- testcol.save(doc = a2, waitForSync = true)
+            Document(b1id, _, _) <- testcol.save(doc = b1, waitForSync = true)
+            Document(b2id, _, _) <- testcol.save(doc = b2, waitForSync = true)
+            a1found <- testcol.document[A](id = a1id)
+            a2found <- testcol.document[A](id = a2id)
+            b1found <- testcol.document[B](id = b1id)
+            b2found <- testcol.document[B](id = b2id)
+          } yield {
+            assert(a1found == a1 && a2found == a2 && b1found == b1 && b2found == b2)
+          }
+          val ready = f.isReadyWithin(1.minute)
+          assert(ready)
+        } finally {
+          testcol.delete
         }
-        val ready = f.isReadyWithin(1.minute)
-        assert(ready)
       }
     }
   }
