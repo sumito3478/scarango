@@ -45,7 +45,7 @@ class DBSpec extends FunSpec with ScalaFutures with DiagrammedAssertions {
             a2found <- testcol.document[A](id = a2id)
             b1found <- testcol.document[B](id = b1id)
             b2found <- testcol.document[B](id = b2id)
-            cursor <- _system.cursor[Document](query = db.AQL("FOR x IN testcol RETURN x"), count = true, batchSize = 2)
+            cursor <- _system._cursor[Document](query = db.AQL("FOR x IN testcol RETURN x"), count = true, batchSize = 2)
             results <- cursor.readAll
           } yield {
             val resultsSet = results.map(_._id).toSet

@@ -66,7 +66,7 @@ sealed trait DatabaseLike extends Dynamic {
   /**
    * Create an AQL query cursor and returns the results as a Cursor object
    */
-  def cursor[A: UnMarshall](query: AQL, count: Boolean = false, batchSize: Int = 1000): Future[Cursor[A]] = {
+  def _cursor[A: UnMarshall](query: AQL, count: Boolean = false, batchSize: Int = 1000): Future[Cursor[A]] = {
     def fail(): Nothing = throw new ArangoDriverException("hasMore = true but no id found")
     def nextCursor(prev: CursorQueryResult[A]): Future[Cursor[A]] = {
       for {
