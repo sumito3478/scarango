@@ -11,7 +11,7 @@
   <root level="DEBUG">
     <appender-ref ref="STDOUT"/>
   </root>
-  <logger name="com.ning.http.client.providers">
+  <logger name="com.ning.http.client">
     <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
       <level>INFO</level>
     </filter>
