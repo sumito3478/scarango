@@ -57,6 +57,34 @@ class DBSpec extends FunSpec with ScalaFutures with DiagrammedAssertions {
           testcol.delete
         }
       }
+      describe("with bind parameters") {
+        it("returns results") {
+          val _system = connection.Connection(executor = http.Executor())._system
+          val testcol = _system.testcol
+          try {
+            val f = for {
+              Document(a1id, _, _) <- testcol.save(doc = a1, createCollection = true, waitForSync = true)
+              Document(a2id, _, _) <- testcol.save(doc = a2, waitForSync = true)
+              Document(b1id, _, _) <- testcol.save(doc = b1, waitForSync = true)
+              Document(b2id, _, _) <- testcol.save(doc = b2, waitForSync = true)
+              Document(b3id, _, _) <- testcol.save(doc = b3, waitForSync = true)
+              a1found <- testcol.document[A](id = a1id)
+              a2found <- testcol.document[A](id = a2id)
+              b1found <- testcol.document[B](id = b1id)
+              b2found <- testcol.document[B](id = b2id)
+              cursor <- _system._cursor[Document](query = db.AQL("FOR x IN testcol FILTER x.x == @x RETURN x", bindVars = Map("x" -> Json.JInt(1))), count = true, batchSize = 2)
+              results <- cursor.readAll
+            } yield {
+              val resultsSet = results.map(_._id).toSet
+              assert(resultsSet == Set(a1id, a2id, b1id, b2id))
+            }
+            val ready = f.isReadyWithin(1.minute)
+            assert(ready)
+          } finally {
+            testcol.delete
+          }
+        }
+      }
     }
     describe("when validate query") {
       describe("when the query string is invalid") {

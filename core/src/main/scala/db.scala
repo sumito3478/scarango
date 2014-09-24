@@ -25,8 +25,8 @@ import scalaz._, Scalaz._
 
 case class DatabaseInfo(name: String, id: String, path: String, isSystem: Boolean)
 case class User(username: String, passwd: Option[String], active: Boolean, extra: Json)
-case class AQL(source: String)
-case class CursorQuery(query: String, count: Boolean, batchSize: Int)
+case class AQL(source: String, bindVars: Map[String, Json] = Map())
+case class CursorQuery(query: String, count: Boolean, batchSize: Int, bindVars: Map[String, Json] = Map())
 case class CursorQueryResult[A](hasMore: Boolean, error: Boolean, id: Option[String], result: List[A], code: Int, count: Option[Int])
 case class Cursor[A](head: List[A], tail: Option[() => Future[Cursor[A]]]) {
   /**
@@ -72,12 +72,12 @@ sealed trait DatabaseLike extends Dynamic {
     def fail(): Nothing = throw new ArangoDriverException("hasMore = true but no id found")
     def nextCursor(prev: CursorQueryResult[A]): Future[Cursor[A]] = {
       for {
-        next <- (_dispatcher.copy(body = Some(Json.write(marshall(CursorQuery(query = query.source, count = count, batchSize = batchSize))))).PUT
+        next <- (_dispatcher.copy(body = Some(Json.write(marshall(CursorQuery(query = query.source, count = count, batchSize = batchSize, bindVars = query.bindVars))))).PUT
           / s"cursor/${prev.id.getOrElse(fail())}").dispatchRoot[CursorQueryResult[A]]
       } yield if (next.hasMore) Cursor(head = next.result, tail = Some(() => nextCursor(next))) else Cursor(head = next.result, tail = None)
     }
     for {
-      first <- (_dispatcher.copy(body = Some(Json.write(marshall(CursorQuery(query = query.source, count = count, batchSize = batchSize))))).POST / s"cursor").dispatchRoot[CursorQueryResult[A]]
+      first <- (_dispatcher.copy(body = Some(Json.write(marshall(CursorQuery(query = query.source, count = count, batchSize = batchSize, bindVars = query.bindVars))))).POST / s"cursor").dispatchRoot[CursorQueryResult[A]]
     } yield if (first.hasMore) Cursor(head = first.result, tail = Some(() => nextCursor(first))) else Cursor(head = first.result, tail = None)
   }
   /**
