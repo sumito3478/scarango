@@ -46,7 +46,7 @@ lazy val buildInfoSettings = {
 
 lazy val commonSettings = Seq(
   javaOptions := Seq("-Xms1024m"),
-  organization := "org.arangodb.scarango",
+  organization := "info.sumito3478",
   scalaVersion := "2.11.2",
   crossScalaVersions := Seq("2.10.4", "2.11.2"),
   fork := true,
