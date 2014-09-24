@@ -23,6 +23,7 @@ import com.ning.http.client._, http._
 import json._, Json._, Marshall._, UnMarshall._
 import scalaz._, Scalaz._
 import scala.language.dynamics
+import db._
 
 private[scarango] case class Result[A](result: A)
 private[scarango] case class DBCreationOption(name: String, users: List[db.User])
@@ -33,10 +34,17 @@ case class Connection(executor: Executor, host: String = "127.0.0.1", port: Int 
     s"$scheme://$host:$port"
   }
   private[scarango] def _api = s"${_baseUrl}/_api"
-  /**
-   * Retrieves the list of all databases the current user can access without specifying a different username or password
-   */
-  def _userDBs: Future[List[String]] = (Dispatcher().GET / "database/user").dispatch[List[String]]()
+  object _database {
+    /**
+     * Retrieves the list of all databases the current user can access without specifying a different username or password
+     */
+    def user: Future[List[String]] = (Dispatcher().GET / "database/user").dispatch[List[String]]()
+
+    /**
+     * Retrieves information about the current database
+     */
+    def current: Future[DatabaseInfo] = (Dispatcher().GET / "database/current").dispatch[DatabaseInfo]()
+  }
 
   val _system = db.SystemDatabase(connection = this)
 

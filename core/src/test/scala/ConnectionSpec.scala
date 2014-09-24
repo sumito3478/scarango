@@ -39,9 +39,9 @@ class ConnectionSpec extends FunSpec with ScalaFutures with DiagrammedAssertions
         create.check()
         try {
           val test = for {
-            dbs <- con._system._dbs
+            dbs <- con._system._database
             _ = assert(dbs == List("_system", "test-database"))
-            userDBs <- con._userDBs
+            userDBs <- con._database.user
             _ = assert(userDBs == List("_system", "test-database"))
           } yield ()
           test.check()

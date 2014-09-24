@@ -61,11 +61,6 @@ sealed trait DatabaseLike extends Dynamic {
   private[scarango] val _dispatcher = connection.Dispatcher(url = _api)
   def selectDynamic(name: String): Collection = Collection(name, this)
   /**
-   * Retrieves information about the current database
-   */
-  def _info: Future[DatabaseInfo] = (_dispatcher.GET / "database/current").dispatch[DatabaseInfo]()
-
-  /**
    * Create an AQL query cursor and returns the results as a Cursor object
    */
   def _cursor[A: UnMarshall](query: AQL, count: Boolean = false, batchSize: Int = 1000): Future[Cursor[A]] = {
@@ -102,7 +97,7 @@ case class SystemDatabase(connection: Connection) extends DatabaseLike {
   /**
    * Retrieves the list of all existing databases Note: retrieving the list of databases is only possible from within the _system database.
    */
-  def _dbs: Future[List[String]] = (_dispatcher.GET / "database").dispatch[List[String]]()
+  def _database: Future[List[String]] = (_dispatcher.GET / "database").dispatch[List[String]]()
 
   /**
    * Creates a new database
