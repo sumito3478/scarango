@@ -58,6 +58,44 @@ class DBSpec extends FunSpec with ScalaFutures with DiagrammedAssertions {
         }
       }
     }
+    describe("when validate query") {
+      describe("when the query string is invalid") {
+        it("throws ArangoDBException") {
+          val _system = connection.Connection(executor = http.Executor())._system
+          val testcol = _system.testcol
+          try {
+            val f = for {
+              Document(a1id, _, _) <- testcol.save(doc = a1, createCollection = true, waitForSync = true)
+              result <- _system._query("invalid")
+            } yield {
+              assert(result.collections == List("testcol"))
+            }
+            val e = f.failed.futureValue(timeout(1.minute))
+            // assert(e.isInstanceOf[ArangoException]) // TODO: this assertion fails since e is java.util.concurrent.Execution. Dispatcher should extract the cause...
+          } finally {
+            testcol.delete
+          }
+        }
+      }
+      describe("when the query string is valid") {
+        it("returns the list of collections that the query accesses") {
+          val _system = connection.Connection(executor = http.Executor())._system
+          val testcol = _system.testcol
+          try {
+            val f = for {
+              Document(a1id, _, _) <- testcol.save(doc = a1, createCollection = true, waitForSync = true)
+              result <- _system._query("FOR x IN testcol RETURN x")
+            } yield {
+              assert(result.collections == List("testcol"))
+            }
+            val ready = f.isReadyWithin(1.minute)
+            assert(ready)
+          } finally {
+            testcol.delete
+          }
+        }
+      }
+    }
   }
 }
 

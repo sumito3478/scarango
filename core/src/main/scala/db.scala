@@ -52,6 +52,8 @@ case class Cursor[A](head: List[A], tail: Option[() => Future[Cursor[A]]]) {
       case (acc, x) => acc :+ x
     }.map(_.toList)
 }
+case class QueryValidationInput(query: String)
+case class QueryValidationResult(bindVars: List[String], collections: List[String])
 
 sealed trait DatabaseLike extends Dynamic {
   val connection: Connection
@@ -77,6 +79,15 @@ sealed trait DatabaseLike extends Dynamic {
     for {
       first <- (_dispatcher.copy(body = Some(Json.write(marshall(CursorQuery(query = query.source, count = count, batchSize = batchSize))))).POST / s"cursor").dispatchRoot[CursorQueryResult[A]]
     } yield if (first.hasMore) Cursor(head = first.result, tail = Some(() => nextCursor(first))) else Cursor(head = first.result, tail = None)
+  }
+  /**
+   * Validate an AQL Query string without executing it
+   */
+  def _query(query: String): Future[QueryValidationResult] = {
+    val in = QueryValidationInput(query = query)
+    for {
+      result <- (_dispatcher.copy(body = Some(Json.write(marshall(in)))).POST / s"query").dispatchRoot[QueryValidationResult]
+    } yield result
   }
 }
 
