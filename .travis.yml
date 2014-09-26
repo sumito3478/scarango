@@ -1,11 +1,15 @@
 language: scala
 script:
-  - sbt ++$TRAVIS_SCALA_VERSION
+  - sbt ++$TRAVIS_SCALA_VERSION test
 scala:
   - 2.10.4
   - 2.11.2
 jdk:
   - openjdk7
+env:
+  - VERSION=2.2
+before_script:
+  - "./src/test/travis/arangodb.sh"
 notifications:
   email:
     - sumito3478@gmail.com
