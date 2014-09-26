@@ -7,7 +7,7 @@ scala:
 jdk:
   - openjdk7
 env:
-  - VERSION=2.2
+  - ARANGODB_DISABLE_AUTHENTIFICATION=false VERSION=2.2
 before_script:
   - "./src/test/travis/arangodb.sh"
 notifications:
