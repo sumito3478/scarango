@@ -1,0 +1,12 @@
+language: scala
+script:
+  - sbt ++$TRAVIS_SCALA_VERSION
+scala:
+  - 2.10.4
+  - 2.11.2
+jdk:
+  - openjdk7
+notifications:
+  email:
+    - sumito3478@gmail.com
+# vim:set ts=2 sw=2 et:
