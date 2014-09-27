@@ -71,5 +71,3 @@ abstract class ScarangoSpec extends FunSpec with ScalaFutures with DiagrammedAss
         }
     }
 }
-//
-//class DBSpec extends FunSpec with ScalaFutures with DiagrammedAssertions {
