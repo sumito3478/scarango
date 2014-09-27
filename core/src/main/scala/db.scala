@@ -59,7 +59,10 @@ sealed trait DatabaseLike extends Dynamic {
   val connection: Connection
   protected[this] def _api: String
   private[scarango] val _dispatcher = connection.Dispatcher(url = _api)
-  def selectDynamic(name: String): Collection = Collection(name, this)
+
+  def _collection(name: String) = Collection(name = name, database = this)
+
+  def selectDynamic(name: String) = _collection(name = name)
   /**
    * Create an AQL query cursor and returns the results as a Cursor object
    */
