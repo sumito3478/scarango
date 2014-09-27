@@ -21,7 +21,7 @@ import org.scalatest.concurrent._
 import scala.concurrent._
 import scala.concurrent.duration._
 import http._, db._, connection._, collection._
-import json._, Json._, Marshall._, UnMarshall._
+import json._, Json._
 import Disposable._
 
 object ScarangoSpec {

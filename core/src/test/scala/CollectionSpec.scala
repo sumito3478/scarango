@@ -14,12 +14,9 @@ limitations under the License.
 */
 package scarango
 
-import scala.concurrent._, duration._
 import internal.Implicits._
 import collection._
 import json._, Marshall._, UnMarshall._
-import org.scalatest._
-import org.scalatest.concurrent._
 import ScarangoSpec._
 
 class CollectionSpec extends ScarangoSpec {
