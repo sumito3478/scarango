@@ -66,7 +66,7 @@ object Executor {
     }).setUserAgent(userAgent)
       .setRequestTimeoutInMs(-1)
     new Executor with Disposable {
-      def client = new AsyncHttpClient(builder.build)
+      lazy val client = new AsyncHttpClient(builder.build)
       def disposeInternal = client.close
     }
   }
