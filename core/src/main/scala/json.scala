@@ -22,7 +22,9 @@ import shapeless._
 import scala.language.experimental.macros
 
 // JSON AST for ArangoDB
-sealed abstract class Json
+sealed abstract class Json {
+  override def toString = Json.prettyPrint(this)
+}
 object Json {
   case class JInt(value: Int) extends Json
   case class JNumber(value: Double) extends Json

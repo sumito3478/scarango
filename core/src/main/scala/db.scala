@@ -54,12 +54,31 @@ case class Cursor[A](head: List[A], tail: Option[() => Future[Cursor[A]]]) {
 }
 case class QueryValidationInput(query: String)
 case class QueryValidationResult(bindVars: List[String], collections: List[String])
+case class CollectionKeyOptions(
+  `type`: String,
+  allowUserKeys: Boolean,
+  increment: Int,
+  offset: Int)
+case class CollectionCreationOptions(
+  name: String,
+  waitForSync: Boolean = false,
+  doCompact: Boolean = true,
+  journalSize: Option[Int] = None,
+  isSystem: Boolean = false,
+  isVolatile: Boolean = false,
+  keyOptions: Option[CollectionKeyOptions] = None,
+  `type`: Int = 2,
+  numberOfShards: Int = 1,
+  shardKeys: String = "_key")
 
 sealed trait DatabaseLike extends Dynamic {
   val connection: Connection
   protected[this] def _api: String
   private[scarango] val _dispatcher = connection.Dispatcher(url = _api)
-  def selectDynamic(name: String): Collection = Collection(name, this)
+
+  def _collection(name: String) = Collection(name = name, database = this)
+
+  def selectDynamic(name: String) = _collection(name = name)
   /**
    * Create an AQL query cursor and returns the results as a Cursor object
    */
@@ -83,6 +102,15 @@ sealed trait DatabaseLike extends Dynamic {
     for {
       result <- (_dispatcher.copy(body = Some(Json.write(marshall(in)))).POST / s"query").dispatchRoot[QueryValidationResult]
     } yield result
+  }
+
+  /**
+   * Creates an new collection with a given name.
+   */
+  def _createCollection(options: CollectionCreationOptions): Future[Collection] = {
+    for {
+      _ <- (_dispatcher.copy(body = Some(Json.write(marshall(options)))).POST / s"collection").dispatchRoot[Unit]() // TODO: returns the created collection info
+    } yield _collection(name = options.name)
   }
 }
 

@@ -14,43 +14,31 @@ limitations under the License.
 */
 package scarango
 
-import scala.concurrent._, duration._
 import internal.Implicits._
-import scala.concurrent._, duration._
-import internal.Implicits._
-import collection._
-import json._, Marshall._, UnMarshall._
-import org.scalatest._
-import org.scalatest.concurrent._
-import org.scalatest.concurrent.PatienceConfiguration._
 
-class ConnectionSpec extends FunSpec with ScalaFutures with DiagrammedAssertions {
-  implicit class FutureW[A](self: Future[A]) {
-    def check(timeout: Timeout = Timeout(1.minute)): A = whenReady(self, timeout = timeout)(identity _)
-  }
+class ConnectionSpec extends ScarangoSpec {
   describe("Connection") {
     describe("_create") {
       it("create new database") {
-        val con = connection.Connection(executor = http.Executor())
-        val create = for {
-          creationResult <- con._system._create(name = "test-database")
-          _ = assert(creationResult)
-        } yield ()
-        create.check()
-        try {
-          val test = for {
-            dbs <- con._system._database
-            _ = assert(dbs == List("_system", "test-database"))
-            userDBs <- con._database.user
-            _ = assert(userDBs == List("_system", "test-database"))
-          } yield ()
-          test.check()
-        } finally {
-          val delete = for {
-            deletionResult <- con._system._delete(name = "test-database")
-            _ = assert(deletionResult)
-          } yield ()
-          delete.check()
+        withConnection {
+          con =>
+            (for {
+              creationResult <- con._system._create(name = "test-database")
+              _ = assert(creationResult)
+            } yield ()).await()
+            try {
+              (for {
+                dbs <- con._system._database
+                _ = assert(dbs == List("_system", "test-database"))
+                userDBs <- con._database.user
+                _ = assert(userDBs == List("_system", "test-database"))
+              } yield ()).await()
+            } finally {
+              (for {
+                deletionResult <- con._system._delete(name = "test-database")
+                _ = assert(deletionResult)
+              } yield ()).await()
+            }
         }
       }
     }
