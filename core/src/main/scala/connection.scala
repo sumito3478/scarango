@@ -48,7 +48,9 @@ case class Connection(executor: Executor, host: String = "127.0.0.1", port: Int 
 
   val _system = db.SystemDatabase(connection = this)
 
-  def selectDynamic(name: String) = db.Database(name = name, connection = this)
+  def _database(name: String) = db.Database(name = name, connection = this)
+
+  def selectDynamic(name: String) = _database(name = name)
 
   private[scarango] case class Dispatcher(url: String = _api, method: String = "GET", body: Option[String] = None, headers: Map[String, String] = Map(), queries: Map[String, String] = Map()) {
     private[this] def dispatchRaw[A](f: Response => A): Future[A] = {
