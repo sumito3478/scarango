@@ -29,6 +29,11 @@ trait Disposable {
     dispose()
   }
 }
+object Disposable {
+  def using[A <: Disposable, B](disposable: => A)(f: A => B): B =
+    try f(disposable) finally disposable.dispose()
+}
+
 case class ArangoErrorResponse(error: Boolean, code: Int, errorNum: Int, errorMessage: String)
 
 case class ArangoException(error: ArangoErrorResponse) extends Exception(error.errorMessage)
