@@ -19,6 +19,7 @@ import db._
 import json._, Json._, Marshall._, UnMarshall._
 import scala.concurrent._
 import internal.Implicits._
+import connection._
 
 case class Document(_id: String, _rev: String, _key: String)
 case class EnsuringIndex(`type`: String, unique: Boolean, fields: List[String])
@@ -31,11 +32,11 @@ case class Collection(name: String, database: DatabaseLike) {
     def find[A: UnMarshall](id: String): Future[A] =
       (_dispatcher.GET / s"document/$id").dispatchRoot[A]()
     def save[A: Marshall](doc: A, createCollection: Boolean = false, waitForSync: Boolean = false): Future[Document] =
-      (_dispatcher.copy(body = Some(Json.write(marshall(doc)))).POST / s"document" <<? Seq("collection" -> name, "createCollection" -> createCollection, "waitForSync" -> waitForSync)).dispatchRoot[Document]()
+      (_dispatcher.copy(body = JsonContent(marshall(doc))).POST / s"document" <<? Seq("collection" -> name, "createCollection" -> createCollection, "waitForSync" -> waitForSync)).dispatchRoot[Document]()
     def ensureHashIndex(fields: String*) =
-      (_dispatcher.copy(body = Some(Json.write(marshall(EnsuringIndex(`type` = "hash", unique = false, fields = fields.toList))))).POST / s"index" <<? Seq("collection" -> name)).dispatch[EnsuringIndexResult]()
+      (_dispatcher.copy(body = JsonContent(marshall(EnsuringIndex(`type` = "hash", unique = false, fields = fields.toList)))).POST / s"index" <<? Seq("collection" -> name)).dispatch[EnsuringIndexResult]()
     def byExample[A](example: Map[String, Json], skip: Option[Int], limit: Option[Int]) =
-      (_dispatcher.copy(body = Some(Json.write(marshall(QueryByExample(collection = name, example = Json.JObject(example), skip = skip, limit = limit))))).PUT / s"simple/by-example").dispatch[QueryResult]()
+      (_dispatcher.copy(body = JsonContent(marshall(QueryByExample(collection = name, example = Json.JObject(example), skip = skip, limit = limit)))).PUT / s"simple/by-example").dispatch[QueryResult]()
   }
   /**
    * Deletes this collection.

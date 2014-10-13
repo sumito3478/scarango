@@ -86,12 +86,12 @@ sealed trait DatabaseLike extends Dynamic {
     def fail(): Nothing = throw new ArangoDriverException("hasMore = true but no id found")
     def nextCursor(prev: CursorQueryResult[A]): Future[Cursor[A]] = {
       for {
-        next <- (_dispatcher.copy(body = Some(Json.write(marshall(CursorQuery(query = query.source, count = count, batchSize = batchSize, bindVars = query.bindVars))))).PUT
+        next <- (_dispatcher.copy(body = JsonContent(marshall(CursorQuery(query = query.source, count = count, batchSize = batchSize, bindVars = query.bindVars)))).PUT
           / s"cursor/${prev.id.getOrElse(fail())}").dispatchRoot[CursorQueryResult[A]]
       } yield if (next.hasMore) Cursor(head = next.result, tail = Some(() => nextCursor(next))) else Cursor(head = next.result, tail = None)
     }
     for {
-      first <- (_dispatcher.copy(body = Some(Json.write(marshall(CursorQuery(query = query.source, count = count, batchSize = batchSize, bindVars = query.bindVars))))).POST / s"cursor").dispatchRoot[CursorQueryResult[A]]
+      first <- (_dispatcher.copy(body = JsonContent(marshall(CursorQuery(query = query.source, count = count, batchSize = batchSize, bindVars = query.bindVars)))).POST / s"cursor").dispatchRoot[CursorQueryResult[A]]
     } yield if (first.hasMore) Cursor(head = first.result, tail = Some(() => nextCursor(first))) else Cursor(head = first.result, tail = None)
   }
   /**
@@ -100,7 +100,7 @@ sealed trait DatabaseLike extends Dynamic {
   def _query(query: String): Future[QueryValidationResult] = {
     val in = QueryValidationInput(query = query)
     for {
-      result <- (_dispatcher.copy(body = Some(Json.write(marshall(in)))).POST / s"query").dispatchRoot[QueryValidationResult]
+      result <- (_dispatcher.copy(body = JsonContent(marshall(in))).POST / s"query").dispatchRoot[QueryValidationResult]
     } yield result
   }
 
@@ -109,7 +109,7 @@ sealed trait DatabaseLike extends Dynamic {
    */
   def _createCollection(options: CollectionCreationOptions): Future[Collection] = {
     for {
-      _ <- (_dispatcher.copy(body = Some(Json.write(marshall(options)))).POST / s"collection").dispatchRoot[Unit]() // TODO: returns the created collection info
+      _ <- (_dispatcher.copy(body = JsonContent(marshall(options))).POST / s"collection").dispatchRoot[Unit]() // TODO: returns the created collection info
     } yield _collection(name = options.name)
   }
 }
@@ -130,7 +130,7 @@ case class SystemDatabase(connection: Connection) extends DatabaseLike {
   /**
    * Creates a new database
    */
-  def _create(name: String, users: List[db.User] = List()): Future[Boolean] = (_dispatcher.copy(body = Some(Json.write(marshall(DBCreationOption(name = name, users = users))))).POST / "database").dispatch[Boolean]()
+  def _create(name: String, users: List[db.User] = List()): Future[Boolean] = (_dispatcher.copy(body = JsonContent(marshall(DBCreationOption(name = name, users = users)))).POST / "database").dispatch[Boolean]()
 
   /**
    * Deletes the database along with all data stored in it. Note: dropping a database is only possible from within the _system database. The _system database itself cannot be dropped.

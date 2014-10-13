@@ -27,6 +27,9 @@ import db._
 
 private[scarango] case class Result[A](result: A)
 private[scarango] case class DBCreationOption(name: String, users: List[db.User])
+private[scarango] sealed trait Content
+private[scarango] case object EmptyContent extends Content
+private[scarango] case class JsonContent(value: Json) extends Content
 
 case class Connection(executor: Executor, host: String = "127.0.0.1", port: Int = 8529, ssl: Boolean = false, user: Option[String] = None, password: Option[String] = None) extends Dynamic {
   private[scarango] def _baseUrl = {
@@ -52,11 +55,15 @@ case class Connection(executor: Executor, host: String = "127.0.0.1", port: Int 
 
   def selectDynamic(name: String) = _database(name = name)
 
-  private[scarango] case class Dispatcher(url: String = _api, method: String = "GET", body: Option[String] = None, headers: Map[String, String] = Map(), queries: Map[String, String] = Map()) {
+  private[scarango] case class Dispatcher(url: String = _api, method: String = "GET", body: Content = EmptyContent, headers: Map[String, String] = Map(), queries: Map[String, String] = Map()) {
     private[this] def dispatchRaw[A](f: Response => A): Future[A] = {
       val req = new RequestBuilder().setUrl(url).setMethod(method)
-      for (body <- body)
-        req.setBody(body)
+      body match {
+        case EmptyContent =>
+        case JsonContent(json) =>
+          req.addHeader("Content-Type", "application/json; charset=utf-8")
+          req.setBody(Json.write(json).getBytes("UTF-8"))
+      }
       for ((k, v) <- headers)
         req.addHeader(k, v)
       for ((k, v) <- queries)
