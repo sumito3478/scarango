@@ -83,12 +83,5 @@ object Logger {
   def debugThrowable[L: LoggerImpl](msg: String, e: Throwable): Unit = macro Macros.debugThrowable[L]
   def trace[L: LoggerImpl](msg: String): Unit = macro Macros.trace[L]
   def traceThrowable[L: LoggerImpl](msg: String, e: Throwable): Unit = macro Macros.traceThrowable[L]
-  //  def errorThrowable(msg: c.Tree, e: c.Tree)(impl: c.Tree): c.Tree = logThrowable(msg, e, impl, "error")
-  //  def warn(msg: c.Tree)(impl: c.Tree): c.Tree = log(msg, impl, "warn")
-  //  def warnThrowable(msg: c.Tree, e: c.Tree)(impl: c.Tree): c.Tree = logThrowable(msg, e, impl, "warn")
-  //  def info(msg: c.Tree)(impl: c.Tree): c.Tree = log(msg, impl, "info")
-  //  def infoThrowable(msg: c.Tree, e: c.Tree)(impl: c.Tree): c.Tree = logThrowable(msg, e, impl, "info")
-  //  def debug(msg: c.Tree)(impl: c.Tree): c.Tree = log(msg, impl, "debug")
-  //  def debugThrowable(msg: c.Tree, e: c.Tree)(impl: c.Tree): c.Tree = logThrowable(msg, e, impl, "debug")
 }
 
