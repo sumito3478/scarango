@@ -17,4 +17,13 @@
     </filter>
     <appender-ref ref="STDOUT"/>
   </logger>
+  <logger name="scarango">
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>DEBUG</level>
+    </filter>
+    <appender-ref ref="STDOUT"/>
+    <layout class="ch.qos.logback.classic.PatternLayout">
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %X{position}: %msg%n</pattern>
+    </layout>
+  </logger>
 </configuration>

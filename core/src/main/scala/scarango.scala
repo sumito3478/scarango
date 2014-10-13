@@ -16,6 +16,7 @@ package scarango
 
 import java.util.concurrent.atomic._
 import json._
+import internal._
 
 trait Disposable {
   def disposeInternal(): Unit
@@ -25,7 +26,8 @@ trait Disposable {
   def dispose(): Unit = if (!disposed.compareAndSet(false, true)) disposeInternal()
 
   override def finalize() = if (!disposed.get) {
-    println(s"$this - calling dispose from finalizer!") // TODO: use logger instead
+    import logging.Defaults._ // I think we can't get an instance of LoggerImpl from finalizer, use default one instead.
+    Logger.warn(s"$this - calling dispose from finalizer!")
     dispose()
   }
 }
