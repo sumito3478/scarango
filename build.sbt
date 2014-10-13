@@ -81,7 +81,13 @@ lazy val commonConfiguration: Project => Project =
     .copy(base = file(p.base.getName.split('-').mkString("/"))) // convert project dir from a-b-c to a/b/c
 
 // Aggregate and depends on all modules
-lazy val all = (project in file(".")).configure(commonConfiguration).aggregate(core).dependsOn(core).settings(commonSettings: _*)
+lazy val all = (project in file(".")).configure(commonConfiguration).aggregate(macros, core).dependsOn(macros, core).settings(commonSettings: _*)
 
 // core module
-lazy val core = project.configure(commonConfiguration).settings(commonSettings: _*).settings(buildInfoSettings: _*)
+lazy val core = project.configure(commonConfiguration).dependsOn(macros).settings(commonSettings: _*).settings(buildInfoSettings: _*)
+
+// macros module
+lazy val macros = project.configure(commonConfiguration).settings(commonSettings: _*).settings(libraryDependencies <++= scalaVersion {
+  v =>
+    if (v.startsWith("2.10")) Seq("org.scalamacros" %% "quasiquotes" % "2.0.1" % "provided") else Seq()
+})
