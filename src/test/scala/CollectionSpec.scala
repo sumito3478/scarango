@@ -40,5 +40,102 @@ class CollectionSpec extends ScarangoSpec {
         }
       }
     }
+    describe("when hash index created") {
+      it("by-example query") {
+        withPreparedCollection {
+          case (con, col, (a1id, a2id, b1id, b2id, b3id)) =>
+            (for {
+              _ <- col.index.hash(fields = List("x"))
+              result <- col.document.byExample(example = Map("x" -> Json.JInt(1)))
+            } yield {
+              assert(result.count == 4)
+              val resultSet = result.result.toSet[Json]
+              import shapeless.syntax.typeable._
+              val ids = for {
+                x <- resultSet
+              } yield (for {
+                x <- x.cast[Json.JObject]
+                x <- x.value.get("_id")
+                x <- x.cast[Json.JString]
+              } yield x.value).getOrElse(sys.error(s"Wrong result $x"))
+              assert(ids == Set(a1id, a2id, b1id, b2id))
+              val as = for {
+                result <- resultSet
+                a <- unmarshall[A](result).toOption
+              } yield a
+              assert(as == Set(a1, a2))
+              val bs = for {
+                result <- resultSet
+                b <- unmarshall[B](result).toOption
+              } yield b
+              assert(bs == Set(b1, b2))
+            }).await()
+        }
+      }
+    }
+    describe("when skiplist index created") {
+      it("by-example query") {
+        withPreparedCollection {
+          case (con, col, (a1id, a2id, b1id, b2id, b3id)) =>
+            (for {
+              _ <- col.index.skiplist(fields = List("x"))
+              result <- col.document.byExample(example = Map("x" -> Json.JInt(1)))
+            } yield {
+              assert(result.count == 4)
+              val resultSet = result.result.toSet[Json]
+              import shapeless.syntax.typeable._
+              val ids = for {
+                x <- resultSet
+              } yield (for {
+                x <- x.cast[Json.JObject]
+                x <- x.value.get("_id")
+                x <- x.cast[Json.JString]
+              } yield x.value).getOrElse(sys.error(s"Wrong result $x"))
+              assert(ids == Set(a1id, a2id, b1id, b2id))
+              val as = for {
+                result <- resultSet
+                a <- unmarshall[A](result).toOption
+              } yield a
+              assert(as == Set(a1, a2))
+              val bs = for {
+                result <- resultSet
+                b <- unmarshall[B](result).toOption
+              } yield b
+              assert(bs == Set(b1, b2))
+            }).await()
+        }
+      }
+    }
+    describe("when geo index created") {
+      it("near query") {
+        withPreparedCollection {
+          case (con, col, (a1id, a2id, b1id, b2id, b3id)) =>
+            (for {
+              _ <- col.index.geo(fields = List("loc"))
+              result <- col.document.near(latitude = 0, longitude = 0, distance = Some("distance"))
+            } yield {
+              assert(result.count == 3)
+              val resultSet = result.result.toSet[Json]
+              import shapeless.syntax.typeable._
+              case class DoubleWithAlmostEquals(self: Double) {
+                override def equals(that: Any): Boolean = that match {
+                  case DoubleWithAlmostEquals(that) => (self - that).abs <= 0.0001
+                  case that => self == that
+                }
+                override def toString = self.toString
+              }
+              val distances = for {
+                x <- resultSet
+              } yield (for {
+                x <- x.cast[Json.JObject]
+                x <- x.value.get("distance")
+                x <- x.cast[Json.JNumber]
+              } yield new DoubleWithAlmostEquals(x.value)).getOrElse(sys.error(s"Wrong result $x"))
+              val expected = for (x <- Set(222.38985328911744, 444.779706578235)) yield new DoubleWithAlmostEquals(x)
+              assert(distances == expected)
+            }).await()
+        }
+      }
+    }
   }
 }

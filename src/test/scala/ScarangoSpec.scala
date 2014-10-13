@@ -24,6 +24,7 @@ import http._, db._, connection._, collection._
 import json._, Json._
 import Disposable._
 import scalaz._
+import internal.Implicits._
 
 object ScarangoSpec {
   private val _sequence = new AtomicInteger
@@ -53,6 +54,9 @@ abstract class ScarangoSpec extends FunSpec with ScalaFutures with DiagrammedAss
       }
     }
   }
+  implicit class ThrowableEitherW[A](self: Throwable \/ A) {
+    def get = self.leftMap(throw _).getOrElse(fail("[BUG] This should not be reached!"))
+  }
   def withConnection[A](f: Connection => A): A = {
     using(Executor()) {
       executor =>
@@ -70,5 +74,17 @@ abstract class ScarangoSpec extends FunSpec with ScalaFutures with DiagrammedAss
         } finally {
           col.delete.await()
         }
+    }
+  def withPreparedCollection[A](f: (Connection, Collection, (String, String, String, String, String)) => A): A =
+    withCollection {
+      (con, col) =>
+        val (a1id, a2id, b1id, b2id, b3id) = (for {
+          Document(a1id, _, _) <- col.document.save(doc = a1, createCollection = true, waitForSync = true)
+          Document(a2id, _, _) <- col.document.save(doc = a2, waitForSync = true)
+          Document(b1id, _, _) <- col.document.save(doc = b1, waitForSync = true)
+          Document(b2id, _, _) <- col.document.save(doc = b2, waitForSync = true)
+          Document(b3id, _, _) <- col.document.save(doc = b3, waitForSync = true)
+        } yield (a1id, a2id, b1id, b2id, b3id)).await()
+        f(con, col, (a1id, a2id, b1id, b2id, b3id))
     }
 }
