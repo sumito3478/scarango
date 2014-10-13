@@ -15,20 +15,12 @@ limitations under the License.
 
 package scarango
 
-//import java.util.concurrent.atomic._
 import org.scalatest._
-import org.scalatest.time._
-import org.scalatest.concurrent._
-//import scala.concurrent._
-//import scala.concurrent.duration._
-//import http._, db._, connection._, collection._
-//import json._, Json._
-//import Disposable._
 import scala.collection._
 import logging._
 import internal._
 
-class LoggingSpec extends FunSpec with ScalaFutures with DiagrammedAssertions {
+class LoggingSpec extends FunSpec with DiagrammedAssertions {
   describe("Logger") {
     it("outputs logs") {
       sealed trait MockLoggerImpl

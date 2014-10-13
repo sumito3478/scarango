@@ -16,9 +16,6 @@ package scarango
 package logging
 
 import scala.language.experimental.macros
-import scala.reflect.macros._
-import scala.collection.immutable._
-import scala.reflect.macros._
 
 trait LoggerImpl[Tag] {
   def isTraceEnabled: Boolean

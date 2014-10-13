@@ -17,8 +17,6 @@ package internal
 
 import scala.language.experimental.macros
 import scala.reflect.macros._
-import scala.collection.immutable._
-import scala.reflect.macros._
 import logging._
 
 object Logger {
